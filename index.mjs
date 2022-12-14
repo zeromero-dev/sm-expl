@@ -3,7 +3,6 @@ import puppeteer from "puppeteer";
 
 // puppeteer.use(StealthPlugin());
 //# regex used [0-9a-z]{8}
-
 const dateConverter = (text) => {
   const splitted = text.split(" ");
   let date = splitted[1];
@@ -56,13 +55,11 @@ const url = `https://smartcinema.ua/payment-succeed/02e8914e`;
 
   console.log(day, date, time);
   const convertedDate = dateConverter(textDate);
-
   console.log(dateConverter(textDate));
-
   dateCompare(convertedDate);
   console.log(dateCompare(convertedDate));
 
-  element === null
+  element === null || dateCompare(convertedDate) === false
     ? await browser.close
     : await page.screenshot({
         path: "./runs/ticketID_" + generateId() + ".png",
