@@ -4,13 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.mjs"
+    "start": "node index.mjs",
+    "cluster": "node cluster.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "puppeteer": "^19.4.0",
-    "puppeteer-extra": "^3.3.4"
+    "puppeteer-cluster": "^0.23.0"
   }
 }

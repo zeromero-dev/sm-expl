@@ -1,7 +1,4 @@
 import puppeteer from "puppeteer";
-// import StealthPlugin from "puppeteer-extra-plugin-stealth";
-
-// puppeteer.use(StealthPlugin());
 //# regex used [0-9a-z]{8}
 const dateConverter = (text) => {
   const splitted = text.split(" ");
@@ -17,7 +14,7 @@ const dateConverter = (text) => {
 const dateCompare = (convertedDate) => {
   const today = new Date();
   return convertedDate >= today;
-  //Returns false if date is in the past, true if is future
+  //Returns false if date is in the past, true if in future
 };
 
 const generateId = () => {
@@ -30,9 +27,9 @@ const generateId = () => {
 };
 
 const randomUrl = `https://smartcinema.ua/payment-succeed/` + generateId();
-//static for trsting
+//static for testing
 const url = `https://smartcinema.ua/payment-succeed/02e8914e`;
-//
+//task to be executed
 (async () => {
   const browser = await puppeteer.launch({ headless: false });
   const page = await browser.newPage();
@@ -41,24 +38,23 @@ const url = `https://smartcinema.ua/payment-succeed/02e8914e`;
     height: 1280,
     deviceScaleFactor: 1,
   });
-  await page.goto(url);
+  await page.goto(randomUrl);
   let element = await page.$(".tickets-list");
   //Select and extract the date from span
   let dataArray = await page.$eval("div:not([class])", (el) =>
     el.innerText.replace(/(\r\n|\n|\r)/gm, " ").split(" ")
   );
+  //Find the date on the page
   const index = dataArray.indexOf("Дата");
   let day = dataArray[index + 1];
   let date = dataArray[index + 2];
   let time = dataArray[index + 3];
   let textDate = day + " " + date + " " + time;
-
-  console.log(day, date, time);
+  // console.log(day, date, time);
   const convertedDate = dateConverter(textDate);
-  console.log(dateConverter(textDate));
+  // console.log(dateConverter(textDate));
   dateCompare(convertedDate);
-  console.log(dateCompare(convertedDate));
-
+  // console.log(dateCompare(convertedDate));
   element === null || dateCompare(convertedDate) === false
     ? await browser.close
     : await page.screenshot({
