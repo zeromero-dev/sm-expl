@@ -12,7 +12,9 @@ const dateConverter = (text) => {
 };
 
 const dateCompare = (convertedDate) => {
-  const today = new Date();
+  const today = new Date().toLocaleString({
+    timeZone: "Europe/Kyiv",
+  });
   return convertedDate >= today;
   //Returns false if date is in the past, true if in future
 };
@@ -28,7 +30,9 @@ const generateId = () => {
 
 const randomUrl = `https://smartcinema.ua/payment-succeed/` + generateId();
 //static for testing
-const url = `https://smartcinema.ua/payment-succeed/02e8914e`;
+const url = `https://smartcinema.ua/payment-succeed/88c3de87`;
+// https://smartcinema.ua/payment-succeed/02e8914e
+// https://smartcinema.ua/payment-succeed/88c3de87
 //task to be executed
 (async () => {
   const browser = await puppeteer.launch({ headless: false });
@@ -38,7 +42,7 @@ const url = `https://smartcinema.ua/payment-succeed/02e8914e`;
     height: 1280,
     deviceScaleFactor: 1,
   });
-  await page.goto(randomUrl);
+  await page.goto(url);
   let element = await page.$(".tickets-list");
   //Select and extract the date from span
   let dataArray = await page.$eval("div:not([class])", (el) =>
@@ -52,9 +56,9 @@ const url = `https://smartcinema.ua/payment-succeed/02e8914e`;
   let textDate = day + " " + date + " " + time;
   // console.log(day, date, time);
   const convertedDate = dateConverter(textDate);
-  // console.log(dateConverter(textDate));
+  console.log(dateConverter(textDate));
   dateCompare(convertedDate);
-  // console.log(dateCompare(convertedDate));
+  console.log(dateCompare(convertedDate));
   element === null || dateCompare(convertedDate) === false
     ? await browser.close
     : await page.screenshot({
