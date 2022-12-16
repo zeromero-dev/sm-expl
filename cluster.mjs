@@ -3,15 +3,30 @@ import { Cluster } from "puppeteer-cluster";
 (async () => {
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_PAGE,
-    maxConcurrency: 3,
+    maxConcurrency: 10,
     puppeteerOptions: {
       headless: false,
-      setViewport: {
-        width: 1080,
-        height: 1280,
-      },
     },
   });
+  const dateConverter = (text) => {
+    const splitted = text.split(" ");
+    let date = splitted[1];
+    const time = splitted[2] + ":00";
+    date = date.replace(/\./g, "/");
+    date =
+      date.substr(3, 2) + "/" + date.substr(0, 2) + "/" + date.substr(6, 4);
+    return new Date(new Date(date + " " + time)).toLocaleString({
+      timeZone: "Europe/Kyiv",
+    });
+  };
+
+  const dateCompare = (convertedDate) => {
+    const today = new Date().toLocaleString({
+      timeZone: "Europe/Kyiv",
+    });
+    return convertedDate >= today;
+    //Returns false if date is in the past, true if in future
+  };
 
   const generateId = () => {
     const chars = "0123456789abcdefghijklmnopqrstuvwxyz".split("");
@@ -22,9 +37,15 @@ import { Cluster } from "puppeteer-cluster";
     return id;
   };
 
+  const staticUrl = `https://smartcinema.ua/payment-succeed/88c3de87`; // for testing purposes
   const randomUrl = `https://smartcinema.ua/payment-succeed/` + generateId();
 
   await cluster.task(async ({ page, data: url }) => {
+    await page.setViewport({
+      width: 1080,
+      height: 1280,
+      deviceScaleFactor: 1,
+    });
     await page.goto(url);
     let element = await page.$(".tickets-list");
     //Select and extract the date from span
@@ -39,9 +60,8 @@ import { Cluster } from "puppeteer-cluster";
     let textDate = day + " " + date + " " + time;
     // console.log(day, date, time);
     const convertedDate = dateConverter(textDate);
-    // console.log(dateConverter(textDate));
     dateCompare(convertedDate);
-    // console.log(dateCompare(convertedDate));
+    // || dateCompare(convertedDate) === false
     element === null || dateCompare(convertedDate) === false
       ? await browser.close
       : await page.screenshot({
@@ -50,14 +70,21 @@ import { Cluster } from "puppeteer-cluster";
     await new Promise((r) => setTimeout(r, 3000));
   });
 
-  // cluster.queue("http://www.google.com/");
-  // cluster.queue("http://www.wikipedia.org/");
-  cluster.queue(randomUrl);
-  cluster.queue(randomUrl);
-  cluster.queue(randomUrl);
-  cluster.queue(randomUrl);
-  // many more pages
+  const callNTimes = (n, fn) => {
+    for (let i = 0; i < n; i++) {
+      fn();
+    }
+  };
 
+  //Calls cluster.queue n times
+  const clusterQueue = (n) => {
+    callNTimes(n, () => cluster.queue(randomUrl));
+  };
+
+  //execute
+  clusterQueue(3);
+
+  await new Promise((r) => setTimeout(r, 3000));
   await cluster.idle();
   await cluster.close();
 })();
