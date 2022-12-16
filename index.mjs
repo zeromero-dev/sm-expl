@@ -56,9 +56,9 @@ const url = `https://smartcinema.ua/payment-succeed/88c3de87`;
   let textDate = day + " " + date + " " + time;
   // console.log(day, date, time);
   const convertedDate = dateConverter(textDate);
-  console.log(dateConverter(textDate));
+  // console.log(dateConverter(textDate));
   dateCompare(convertedDate);
-  console.log(dateCompare(convertedDate));
+  // console.log(dateCompare(convertedDate));
   element === null || dateCompare(convertedDate) === false
     ? await browser.close
     : await page.screenshot({
