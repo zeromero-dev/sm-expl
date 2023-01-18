@@ -1,6 +1,18 @@
 import { Cluster } from "puppeteer-cluster";
+import * as readline from "node:readline/promises";
+import { stdin as input, stdout as output } from "node:process";
 
 (async () => {
+  const callNTimes = (n, fn) => {
+    for (let i = 0; i < n; i++) {
+      fn();
+    }
+  };
+  //Calls cluster.queue n times
+  const clusterQueue = (n) => {
+    callNTimes(n, () => cluster.queue(staticUrl));
+  };
+
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_PAGE,
     maxConcurrency: 10,
@@ -8,6 +20,8 @@ import { Cluster } from "puppeteer-cluster";
       headless: false,
     },
   });
+  // the date on the site needs to be converted to a date object
+  // other way it doesn't work with dateCompare function
   const dateConverter = (text) => {
     const splitted = text.split(" ");
     let date = splitted[1];
@@ -21,13 +35,12 @@ import { Cluster } from "puppeteer-cluster";
   };
 
   const dateCompare = (convertedDate) => {
-    const today = new Date().toLocaleString({
-      timeZone: "Europe/Kyiv",
-    });
+    const today = new Date()
     return convertedDate >= today;
     //Returns false if date is in the past, true if in future
   };
 
+  // Generates uuid (8 characters)
   const generateId = () => {
     const chars = "0123456789abcdefghijklmnopqrstuvwxyz".split("");
     let id = "";
@@ -37,8 +50,9 @@ import { Cluster } from "puppeteer-cluster";
     return id;
   };
 
-  const staticUrl = `https://smartcinema.ua/payment-succeed/88c3de87`; // for testing purposes
+  const staticUrl = `https://smartcinema.ua/payment-succeed/e58b04f8`; // for testing purposes
   const randomUrl = `https://smartcinema.ua/payment-succeed/` + generateId();
+
 
   await cluster.task(async ({ page, data: url }) => {
     await page.setViewport({
@@ -58,10 +72,11 @@ import { Cluster } from "puppeteer-cluster";
     let date = dataArray[index + 2];
     let time = dataArray[index + 3];
     let textDate = day + " " + date + " " + time;
-    // console.log(day, date, time);
+    console.log(day, date, time);
     const convertedDate = dateConverter(textDate);
+    console.log(convertedDate)
     dateCompare(convertedDate);
-    // || dateCompare(convertedDate) === false
+    console.log(dateCompare(convertedDate));
     element === null || dateCompare(convertedDate) === false
       ? await browser.close
       : await page.screenshot({
@@ -70,19 +85,18 @@ import { Cluster } from "puppeteer-cluster";
     await new Promise((r) => setTimeout(r, 3000));
   });
 
-  const callNTimes = (n, fn) => {
-    for (let i = 0; i < n; i++) {
-      fn();
-    }
-  };
+  //executes the cluster.queue function
+  clusterQueue(1);
 
-  //Calls cluster.queue n times
-  const clusterQueue = (n) => {
-    callNTimes(n, () => cluster.queue(randomUrl));
-  };
-
-  //execute
-  clusterQueue(3);
+  //tried to implement the input stream, but it doesn't work as intended
+  // const rl = readline.createInterface({ input, output });
+  // const amountOfRuns = await rl.question("How many runs? ");
+  // clusterQueue(amountOfRuns); // opens amount of tabs the input stream
+  // await rl.output.write("Opened " + amountOfRuns + " tabs.");
+  // sucess === true
+  //   ? rl.output.write("Ticket with ID" + generateId() + "found")
+  //   : rl.output.write("No tickets found");
+  // await rl.close();
 
   await new Promise((r) => setTimeout(r, 3000));
   await cluster.idle();
