@@ -29,13 +29,15 @@ import { stdin as input, stdout as output } from "node:process";
     date = date.replace(/\./g, "/");
     date =
       date.substr(3, 2) + "/" + date.substr(0, 2) + "/" + date.substr(6, 4);
-    return new Date(new Date(date + " " + time)).toLocaleString({
+    return new Date(new Date(date + " " + time)).toISOString().toLocaleString({
       timeZone: "Europe/Kyiv",
     });
   };
 
   const dateCompare = (convertedDate) => {
-    const today = new Date()
+    let today = new Date().toLocaleString({
+      timeZone: "Europe/Kyiv",
+    });
     return convertedDate >= today;
     //Returns false if date is in the past, true if in future
   };
@@ -52,7 +54,6 @@ import { stdin as input, stdout as output } from "node:process";
 
   const staticUrl = `https://smartcinema.ua/payment-succeed/e58b04f8`; // for testing purposes
   const randomUrl = `https://smartcinema.ua/payment-succeed/` + generateId();
-
 
   await cluster.task(async ({ page, data: url }) => {
     await page.setViewport({
@@ -74,7 +75,7 @@ import { stdin as input, stdout as output } from "node:process";
     let textDate = day + " " + date + " " + time;
     console.log(day, date, time);
     const convertedDate = dateConverter(textDate);
-    console.log(convertedDate)
+    console.log(convertedDate);
     dateCompare(convertedDate);
     console.log(dateCompare(convertedDate));
     element === null || dateCompare(convertedDate) === false
